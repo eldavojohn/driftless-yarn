@@ -1,6 +1,6 @@
 {
   "name": "driftless-yarn",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple tool to consume a project's yarn.lock and ensure certain dependencies are singular.",
   "main": "src/index.js",
   "scripts": {
