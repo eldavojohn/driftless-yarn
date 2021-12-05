@@ -84,3 +84,7 @@ Done in 6.45s.
 # Pass with the `yarn why` flag turned on:
 
 This produces no output other than a success code since there was no package to run yarn why on.
+
+# Enforcing a Number of Versions Present
+
+Inside the configuration file, numbers will enforce that the yarn.lock file has that many versions of that dependency.  For example `source-map 3` will enforce that there are three and exactly three versions of source-map in the project.  

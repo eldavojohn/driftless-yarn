@@ -1,40 +1,43 @@
-describe("start.js", () => {
-  // @ts-expect-error
-  let mockshell;
-  // @ts-expect-error
-  let exitSpy;
+import fs from "fs";
+// @ts-expect-error
+import { parse } from "@yarnpkg/lockfile";
+const { compareLists } = require("../src/compare-lists");
 
-  beforeEach(() => {
-    jest.mock("shelljs", () => {
-      return {
-        exec: jest.fn(),
-        which: jest.fn(),
-        echo: jest.fn(),
-      };
+const output: string[] = [];
+
+const mockConsole = (arg: string) => output.push(arg);
+
+describe("copare-lists", () => {
+  it("should run with no params", () => {
+    const file = fs.readFileSync("yarn.lock", "utf8");
+    const json = parse(file);
+
+    const artifactRegistry: { [key: string]: string[] } = {};
+    const versionStringRegistry: { [key: string]: string[] } = {};
+
+    Object.keys(json.object).forEach((key) => {
+      const implodedEntry = json.object[key];
+      const name = key[0] === "@" ? `@${key.split("@")[1]}` : key.split("@")[0];
+      const artifact = implodedEntry.resolved;
+      if (
+        artifactRegistry[name] &&
+        artifactRegistry[name].indexOf(artifact) === -1
+      ) {
+        artifactRegistry[name].push(artifact);
+        versionStringRegistry[name].push(key);
+      } else if (!artifactRegistry[name]) {
+        artifactRegistry[name] = [artifact];
+        versionStringRegistry[name] = [key];
+      }
     });
-    mockshell = require("shelljs");
-
-    exitSpy = jest.spyOn(process, "exit").mockImplementation(() => {
-      throw new Error("Mock");
-    });
-  });
-
-  afterEach(() => {
-    jest.resetModules();
-    jest.resetAllMocks();
-  });
-
-  it("should execute program", () => {
-    // @ts-expect-error
-    mockshell.which.mockReturnValue(true);
-
-    require("../src/index.js");
-
-    // @ts-expect-error
-    expect(mockshell.echo).not.toHaveBeenCalled();
-    // @ts-expect-error
-    expect(exitSpy).not.toHaveBeenCalled();
-    // @ts-expect-error
-    expect(mockshell.exec).toHaveBeenCalledWith("../src/index.js");
+    compareLists(
+      "tslib\npath-is-absolute\nchalk\n@cspotcode/source-map-consumer\nsomething-not-present",
+      artifactRegistry,
+      versionStringRegistry,
+      true,
+      false,
+      mockConsole
+    );
+    console.log(output)
   });
 });

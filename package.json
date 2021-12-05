@@ -1,14 +1,16 @@
 {
   "name": "driftless-yarn",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A simple tool to consume a project's yarn.lock and ensure certain dependencies are singular.",
   "main": "src/index.js",
   "scripts": {
     "start": "tsc && ts-node --project tsconfig.json src/index.ts",
     "start:fail:why": "tsc && ts-node --project tsconfig.json src/index.ts -p public/failingList.txt -w",
     "start:fail:verbose": "tsc && ts-node --project tsconfig.json src/index.ts -p public/failingList.txt -v",
+    "start:fail:numbers": "tsc && ts-node --project tsconfig.json src/index.ts -p public/failingListWithNumbers.txt -v",
     "start:pass:why": "tsc && ts-node --project tsconfig.json src/index.ts -p public/passingList.txt -w",
     "start:pass:verbose": "tsc && ts-node --project tsconfig.json src/index.ts -p public/passingList.txt -v",
+    "start:pass:numbers": "tsc && ts-node --project tsconfig.json src/index.ts -p public/passingListWithNumbers.txt -v",
     "test": "yarn jest",
     "format": "yarn eslint . --fix"
   },
