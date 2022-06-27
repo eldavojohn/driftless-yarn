@@ -3,4 +3,4 @@ something-not-present 0
 json5
 lodash.memoize
 prelude-ls 2
-source-map 3 
+source-map 2 

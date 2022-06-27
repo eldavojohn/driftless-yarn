@@ -6,6 +6,7 @@ const output: string[] = [];
 
 const mockConsole = (arg: string) => output.push(arg);
 
+// TODO need to figure out how to capture process.exit(1)
 describe("copare-lists", () => {
   it("should run with no params", () => {
     const file = fs.readFileSync("yarn.lock", "utf8");
