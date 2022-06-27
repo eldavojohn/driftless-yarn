@@ -1,6 +1,5 @@
 import fs from "fs";
 import https from "https";
-// @ts-expect-error
 import { parse } from "@yarnpkg/lockfile";
 import { Command } from "commander";
 

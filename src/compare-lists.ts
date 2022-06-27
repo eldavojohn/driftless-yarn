@@ -1,9 +1,28 @@
 import { spawnSync } from "child_process";
 
-function parseNumber(line: string) {
+function parseLevel(line: string) {
   const lineSegments = line.split(" ");
   if (lineSegments[1]) {
-    return parseInt(lineSegments[1]);
+    if (lineSegments[1] === "M") {
+      return "major";
+    } else if (lineSegments[1] === "m") {
+      return "minor";
+    }
+  }
+  return undefined;
+}
+
+function parseNumber(line: string) {
+  const lineSegments = line.split(" ");
+  try {
+    if (lineSegments[1]) {
+      if (lineSegments[1] === "m" || lineSegments[1] === "M") {
+        return undefined;
+      }
+      return parseInt(lineSegments[1]);
+    }
+  } catch {
+    return undefined;
   }
   return undefined;
 }
@@ -24,6 +43,32 @@ function englishList(arr: string[]) {
   return end;
 }
 
+function detectViolation(rawpkg: string, artifactRegistryEntry: string[]) {
+  const desiredLevel = parseLevel(rawpkg);
+  const regexpVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)\.tgz/;
+  if (desiredLevel) {
+    let isViolation = false;
+    const levelCollection = new Set();
+    artifactRegistryEntry?.forEach((entry) => {
+      if (!isViolation) {
+        const match = entry.match(regexpVersion);
+        if (desiredLevel === "major") {
+          levelCollection.add(match?.[1]);
+        } else if (desiredLevel === "minor") {
+          levelCollection.add(`${match?.[1]}.${match?.[2]}`);
+        }
+        if (levelCollection.size > 1) {
+          isViolation = true;
+        }
+      }
+    });
+    return isViolation;
+  }
+  return parseNumber(rawpkg) === undefined
+    ? artifactRegistryEntry?.length > 1
+    : (artifactRegistryEntry?.length ?? 0) !== parseNumber(rawpkg);
+}
+
 function compareLists(
   packageList: string,
   artifactRegistry: { [key: string]: string[] },
@@ -33,18 +78,10 @@ function compareLists(
   // eslint-disable-next-line no-unused-vars
   consoleInfo: (arg: any) => void
 ) {
-  console.log({
-    packageList,
-    artifactRegistry,
-    reportingLists
-  })
   const collectedIssues: string[] = [];
   packageList.split("\n").forEach((rawpkg) => {
     const pkg = parsePkg(rawpkg);
-    const registryViolation =
-      parseNumber(rawpkg) === undefined
-        ? artifactRegistry[pkg]?.length > 1
-        : (artifactRegistry[pkg]?.length ?? 0) !== parseNumber(rawpkg);
+    const registryViolation = detectViolation(rawpkg, artifactRegistry[pkg]);
     if (registryViolation && !verbose && !yarnWhy) {
       // fail eagerly
       process.exit(1);

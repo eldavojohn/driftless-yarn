@@ -1,10 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var child_process_1 = require("child_process");
-function parseNumber(line) {
+function parseLevel(line) {
     var lineSegments = line.split(" ");
     if (lineSegments[1]) {
-        return parseInt(lineSegments[1]);
+        if (lineSegments[1] === "M") {
+            return "major";
+        }
+        else if (lineSegments[1] === "m") {
+            return "minor";
+        }
+    }
+    return undefined;
+}
+function parseNumber(line) {
+    var lineSegments = line.split(" ");
+    try {
+        if (lineSegments[1]) {
+            if (lineSegments[1] === "m" || lineSegments[1] === "M") {
+                return undefined;
+            }
+            return parseInt(lineSegments[1]);
+        }
+    }
+    catch (_a) {
+        return undefined;
     }
     return undefined;
 }
@@ -22,21 +42,40 @@ function englishList(arr) {
     }
     return end;
 }
+function detectViolation(rawpkg, artifactRegistryEntry) {
+    var _a;
+    var desiredLevel = parseLevel(rawpkg);
+    var regexpVersion = /([0-9]+)\.([0-9]+)\.([0-9]+)\.tgz/;
+    if (desiredLevel) {
+        var isViolation_1 = false;
+        var levelCollection_1 = new Set();
+        artifactRegistryEntry === null || artifactRegistryEntry === void 0 ? void 0 : artifactRegistryEntry.forEach(function (entry) {
+            if (!isViolation_1) {
+                var match = entry.match(regexpVersion);
+                if (desiredLevel === "major") {
+                    levelCollection_1.add(match === null || match === void 0 ? void 0 : match[1]);
+                }
+                else if (desiredLevel === "minor") {
+                    levelCollection_1.add("".concat(match === null || match === void 0 ? void 0 : match[1], ".").concat(match === null || match === void 0 ? void 0 : match[2]));
+                }
+                if (levelCollection_1.size > 1) {
+                    isViolation_1 = true;
+                }
+            }
+        });
+        return isViolation_1;
+    }
+    return parseNumber(rawpkg) === undefined
+        ? (artifactRegistryEntry === null || artifactRegistryEntry === void 0 ? void 0 : artifactRegistryEntry.length) > 1
+        : ((_a = artifactRegistryEntry === null || artifactRegistryEntry === void 0 ? void 0 : artifactRegistryEntry.length) !== null && _a !== void 0 ? _a : 0) !== parseNumber(rawpkg);
+}
 function compareLists(packageList, artifactRegistry, reportingLists, verbose, yarnWhy, 
 // eslint-disable-next-line no-unused-vars
 consoleInfo) {
-    console.log({
-        packageList: packageList,
-        artifactRegistry: artifactRegistry,
-        reportingLists: reportingLists
-    });
     var collectedIssues = [];
     packageList.split("\n").forEach(function (rawpkg) {
-        var _a, _b, _c;
         var pkg = parsePkg(rawpkg);
-        var registryViolation = parseNumber(rawpkg) === undefined
-            ? ((_a = artifactRegistry[pkg]) === null || _a === void 0 ? void 0 : _a.length) > 1
-            : ((_c = (_b = artifactRegistry[pkg]) === null || _b === void 0 ? void 0 : _b.length) !== null && _c !== void 0 ? _c : 0) !== parseNumber(rawpkg);
+        var registryViolation = detectViolation(rawpkg, artifactRegistry[pkg]);
         if (registryViolation && !verbose && !yarnWhy) {
             // fail eagerly
             process.exit(1);
