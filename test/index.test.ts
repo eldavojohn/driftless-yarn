@@ -1,5 +1,4 @@
 import fs from "fs";
-// @ts-expect-error
 import { parse } from "@yarnpkg/lockfile";
 const { compareLists } = require("../src/compare-lists");
 
@@ -38,6 +37,6 @@ describe("copare-lists", () => {
       false,
       mockConsole
     );
-    console.log(output)
+    console.log(output);
   });
 });
