@@ -88,3 +88,7 @@ This produces no output other than a success code since there was no package to 
 # Enforcing a Number of Versions Present
 
 Inside the configuration file, numbers will enforce that the yarn.lock file has that many versions of that dependency.  For example `source-map 3` will enforce that there are three and exactly three versions of source-map in the project.  
+
+# Matching by Major or Minor patch in semantic versioning:
+
+Instead of numbers (note that combination is not supported) is the ability to use 'M' or 'm' at the end of a package declaration to designate that only the Major version to match (for example cssom '3.2.1', cssom '3.3.3' and cssom '3.9.0' will all match as allowed with line "cssom M").  Additionally a lower case 'm' will allow matches of minor releases (cssom '3.5.0', cssom '3.5.1' & cssom '3.5.5' will all match but cssom '3.6.0' will not).
